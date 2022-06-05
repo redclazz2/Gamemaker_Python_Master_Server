@@ -21,7 +21,7 @@ class Client(Thread):
         self.handshake()
         while self.connected:
             try:
-                data = self.connection.recv(1024)
+                data = self.connection.recv(2048)
                 event = struct.unpack('B', data[:1])[0]
 
                 if event == message_codes["PING"]:
@@ -35,6 +35,13 @@ class Client(Thread):
                 elif event == message_codes["NETWORK_MATCHMAKING_TIMEOUT"]:
                     print(f"Matchmaking timed out for client {self.address}")
                     self.disconnect_user()
+                elif event == message_codes["LOBBY_CONFIRM_PLAYER_CONNECTED_TO_OTHERS_P2P"]:
+                    print(f"Updated joining lobby information for client {self.address}")
+                    for lobby in self.server.lst_lobby:
+                        if self == lobby.temp_waiting_for_approval_player:
+                            lobby.clients_in_lobby.append(self)
+                            self.connection.send(pack('B', message_codes["SEND_OTHERS_NICKNAME"]))
+                            lobby.readyToLetAnotherPlayerJoin = True
             except ConnectionResetError:
                 print(f"An error occurred while reading {self.address} data. Client will be deleted from registry.")
                 self.disconnect_user()
@@ -76,6 +83,9 @@ class Client(Thread):
 
     def remove_user_from_lobby(self):
         for lobby in self.server.lst_lobby:
+            if self == lobby.temp_waiting_for_approval_player:
+                lobby.temp_waiting_for_approval_player = 0
+                lobby.readyToLetAnotherPlayerJoin = True
             if self in lobby.clients_in_lobby:
                 lobby.remove_client(self)
 

@@ -1,7 +1,7 @@
 from Server import Server
 
 if __name__ == "__main__":
-    server = Server(10, '127.0.0.1', 1234)
+    server = Server(10, '127.0.0.1', 8056)
     server.start()
 
 # Special Thanks to TheGoodPie for the original Python Project. His code was found at:

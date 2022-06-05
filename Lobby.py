@@ -13,6 +13,7 @@ class Lobby(Thread):
         self.server = server
         self.clients_in_lobby = []
         self.clients_waiting_to_join = deque()
+        self.temp_waiting_for_approval_player = 0
         self.lobby_status = "WAITING"
         self.availableToClose = False
         self.sentReady = False
@@ -34,7 +35,7 @@ class Lobby(Thread):
 
             if len(self.clients_waiting_to_join) > 0 and self.readyToLetAnotherPlayerJoin:
                 self.process_for_client_to_join(self.clients_waiting_to_join.popleft())
-                #self.readyToLetAnotherPlayerJoin = False
+                self.readyToLetAnotherPlayerJoin = False
 
     def add_client(self, client):
         if client not in self.clients_in_lobby:
@@ -47,7 +48,6 @@ class Lobby(Thread):
                 client.send_complex_message_client(message_codes["LOBBY_JOIN_REGULAR"], self.lobby_id)
                 self.let_others_communicate(client)
                 self.clients_waiting_to_join.append(client)
-
 
     def remove_client(self, client):
         self.clients_in_lobby.remove(client)
@@ -62,6 +62,7 @@ class Lobby(Thread):
                                               _client.address[0], _client.address[1])
 
     def process_for_client_to_join(self, client):
+        self.temp_waiting_for_approval_player = client
         client.send_complex_message_client(message_codes["LOBBY_SEND_TOTAL_PLAYERS_IN_LOBBY"],
                                            len(self.clients_in_lobby))
         time.sleep(1/10)

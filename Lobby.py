@@ -52,6 +52,12 @@ class Lobby(Thread):
     def remove_client(self, client):
         self.clients_in_lobby.remove(client)
 
+    def send_all_players_complex_string(self, _client):
+        for client in self.clients_in_lobby:
+            if client != _client:
+                client.send_string_message_client(message_codes["LOBBY_SEND_DISCONNECTED_PLAYER_INFO"], 0,
+                                                  _client.address[0], _client.address[1])
+
     def send_simple_message_all_lobby_clients(self, message):
         for client in self.clients_in_lobby:
             client.connection.send(pack('B', message))

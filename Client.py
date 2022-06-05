@@ -73,21 +73,22 @@ class Client(Thread):
 
     # Removes the user from the server after a disconnection event happens
     def disconnect_user(self):
-        self.server.clients.remove(self)
         if self in self.server.lst_waiting_matchmaking:
             self.server.lst_waiting_matchmaking.remove(self)
         self.remove_user_from_lobby()
         self.connected = False
+        self.server.clients.remove(self)
         print(f"Disconnected {self.address}.")
         del self
 
     def remove_user_from_lobby(self):
         for lobby in self.server.lst_lobby:
+            if self in lobby.clients_in_lobby:
+                lobby.send_all_players_complex_string(self)
+                lobby.remove_client(self)
             if self == lobby.temp_waiting_for_approval_player:
                 lobby.temp_waiting_for_approval_player = 0
                 lobby.readyToLetAnotherPlayerJoin = True
-            if self in lobby.clients_in_lobby:
-                lobby.remove_client(self)
 
     def send_simple_message_client(self, message):
         self.connection.send(pack('B', message))
@@ -109,5 +110,6 @@ class Client(Thread):
             buffer_types["u8"] + buffer_types["u16"] + buffer_types["u16"] + \
             buffer_types["u16"] + buffer_types["u16"] + buffer_types["u16"] + buffer_types["u16"]
 
-        self.connection.send(pack("<" + buffer_type, *[message_id, player_number, int(ip_in_array[0]), int(ip_in_array[1]),
-                                                       int(ip_in_array[2]), int(ip_in_array[3]), int(port)]))
+        self.connection.send(pack("<" + buffer_type, *[message_id, player_number, int(ip_in_array[0]),
+                                                       int(ip_in_array[1]), int(ip_in_array[2]),
+                                                       int(ip_in_array[3]), int(port)]))

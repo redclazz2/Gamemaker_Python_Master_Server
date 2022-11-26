@@ -1,3 +1,4 @@
+import random
 import time
 from struct import *
 from threading import *
@@ -12,6 +13,13 @@ class Lobby(Thread):
         self.lobby_id = lobby_id
         self.server = server
         self.clients_in_lobby = []
+
+        #FOR DEBUG
+        self.max_clients = 1
+
+        self.clients_t1 = []
+        self.clients_t2 = []
+
         self.clients_waiting_to_join = deque()
         self.temp_waiting_for_approval_player = 0
         self.lobby_status = "WAITING"
@@ -25,12 +33,12 @@ class Lobby(Thread):
                 self.server.lst_lobby.remove(self)
                 del self
                 break
-            elif len(self.clients_in_lobby) == 8 and not self.sentReady:
+            elif len(self.clients_in_lobby) == self.max_clients and not self.sentReady:
                 self.lobby_status = "READY"
                 self.send_simple_message_all_lobby_clients(message_codes["LOBBY_READY"])
                 self.sentReady = True
 
-            elif 0 < len(self.clients_in_lobby) < 8:
+            elif 0 < len(self.clients_in_lobby) < self.max_clients:
                 self.lobby_status = "WAITING"
 
             if len(self.clients_waiting_to_join) > 0 and self.readyToLetAnotherPlayerJoin:
@@ -78,3 +86,31 @@ class Lobby(Thread):
                                               self.clients_in_lobby[i].address[0],
                                               self.clients_in_lobby[i].address[1])
             print("Sent!")
+
+    def sort_for_teams(self):
+        color_combinator = random.randint(1, 4)
+        counter = 0
+
+        players_to_organize = self.clients_in_lobby.copy()
+
+        #Randomly sort a set amount of players in two teams.
+        controller = True
+        current_middle_ground = len(self.clients_in_lobby) / 2
+        while(controller and len(players_to_organize) > 0):
+            rnd = random.randint(1,2)
+            if(rnd == 1 and len(self.clients_t1) < current_middle_ground):
+                self.clients_t1.append(players_to_organize.pop())
+            elif(len(self.clients_t2) < current_middle_ground):
+                self.clients_t2.append(players_to_organize.pop())
+            else:
+                controller = False
+
+        for cliente in self.clients_t1:
+            cliente.send_team_and_color_dets(message_codes["SEND_TEAM_AND_COLORS_DET"],color_combinator,1,counter)
+            counter += 1
+
+        counter = 0
+
+        for cliente in self.clients_t2:
+            cliente.send_team_and_color_dets(message_codes["SEND_TEAM_AND_COLORS_DET"],color_combinator,2,counter)
+            counter += 1

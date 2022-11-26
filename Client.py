@@ -113,3 +113,11 @@ class Client(Thread):
         self.connection.send(pack("<" + buffer_type, *[message_id, player_number, int(ip_in_array[0]),
                                                        int(ip_in_array[1]), int(ip_in_array[2]),
                                                        int(ip_in_array[3]), int(port)]))
+
+    def send_team_and_color_dets(self,message_id,color_comb,team_id,team_pos):
+        buffer_type = \
+            buffer_types["u8"] + buffer_types["u16"] + buffer_types["u16"] + \
+            buffer_types["u16"] + buffer_types["u16"]
+
+        self.connection.send(pack("<" + buffer_type, *[message_id, color_comb, team_id,
+                                                       team_pos]))

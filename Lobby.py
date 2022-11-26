@@ -35,8 +35,11 @@ class Lobby(Thread):
                 break
             elif len(self.clients_in_lobby) == self.max_clients and not self.sentReady:
                 self.lobby_status = "READY"
+                time.sleep(1 / 100)
                 self.send_simple_message_all_lobby_clients(message_codes["LOBBY_READY"])
+                self.sort_for_teams()
                 self.sentReady = True
+
 
             elif 0 < len(self.clients_in_lobby) < self.max_clients:
                 self.lobby_status = "WAITING"
@@ -105,12 +108,16 @@ class Lobby(Thread):
             else:
                 controller = False
 
+        time.sleep(3.5)
+
         for cliente in self.clients_t1:
+            time.sleep(1 / 100)
             cliente.send_team_and_color_dets(message_codes["SEND_TEAM_AND_COLORS_DET"],color_combinator,1,counter)
             counter += 1
 
         counter = 0
 
         for cliente in self.clients_t2:
+            time.sleep(1 / 100)
             cliente.send_team_and_color_dets(message_codes["SEND_TEAM_AND_COLORS_DET"],color_combinator,2,counter)
             counter += 1

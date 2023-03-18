@@ -1,5 +1,5 @@
 # Gamemaker_Python_Master_Server
-Gamemaker Master Server Written in Python! ***THIS SERVER WONT BE UPDATED***
+Gamemaker Master Server Written in Python!
 
 New implementation of this server in C#. This python server won't be updated.
 
